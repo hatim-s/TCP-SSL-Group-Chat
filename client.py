@@ -12,7 +12,7 @@ from cryptography.fernet import Fernet
 ALIAS = input('Choose an alias >>> ')
 
 CLIENT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-CLIENT.connect(('127.0.0.1', 59000))
+CLIENT.connect(('192.168.1.12', 59000))
 
 SESSION_KEY = FSESSION_KEY = None
 
@@ -24,7 +24,7 @@ def client_receive():
             encrypted_message = CLIENT.recv(1024)
             # print ("encrypted_message: ", encrypted_message)
 
-            message = ""
+            message = b""
             if encrypted_message:
                 message = FSESSION_KEY.decrypt(encrypted_message)
             
@@ -90,7 +90,7 @@ def client_send():
         if exit_flag:
             CLIENT.close()
 
-            EXIT_FLAG.set()
+            # EXIT_FLAG.set()
             exit()
 
     exit()
