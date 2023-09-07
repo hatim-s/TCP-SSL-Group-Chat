@@ -10,7 +10,7 @@ from cryptography.fernet import Fernet
 
 import json
 
-HOST = '127.0.0.1'
+HOST = '192.168.1.12'
 PORT = 59000
 
 SERVER = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
