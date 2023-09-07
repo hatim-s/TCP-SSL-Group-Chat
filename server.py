@@ -48,7 +48,10 @@ def disconnect_client (client):
     )
     client["socket"].close()
     
-    send_message(f'{client["alias"]} has left the chat room!'.encode('utf-8'), "SERVER", CLIENTS)
+    try:
+        send_message(f'{client["alias"]} has left the chat room!'.encode('utf-8'), "SERVER", CLIENTS)
+    except Exception as E:
+        print (f"Error: client as already closed connection [{E}]")
 
 def handle_client(client):
     while not EXIT_FLAG.is_set():
@@ -145,13 +148,6 @@ def receive_clients():
         thread = threading.Thread(target=handle_client, args=(client,))
         thread.start()
 
-    # exit()
-
-# def handle_server ():
-#     command = input ("Enter 'exit()' to close the server: ")
-#     if command.strip() == "exit()":
-#         EXIT_FLAG.set()
-#         exit()
 
 # Server Sending Certificate
 if __name__ == "__main__":

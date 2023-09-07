@@ -90,7 +90,7 @@ def client_send():
         if exit_flag:
             CLIENT.close()
 
-            EXIT_FLAG.set()
+            # EXIT_FLAG.set()
             exit()
 
     exit()
