@@ -2,11 +2,13 @@ import threading
 import socket
 import json
 
+# Cryptography Primitives for RSA (Asymmetric Key)
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import padding
 
+# Cryptography Primitives for Fernet (Symmetric Key)
 from cryptography.fernet import Fernet
 
 ALIAS = input('Choose an alias >>> ')
@@ -14,8 +16,7 @@ ALIAS = input('Choose an alias >>> ')
 CLIENT = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 CLIENT.connect(('192.168.1.12', 59000))
 
-SESSION_KEY = FSESSION_KEY = None
-
+FSESSION_KEY = None
 EXIT_FLAG = threading.Event()
 
 def client_receive():
@@ -46,8 +47,9 @@ def client_send():
         message = input("") 
 
         send_packet = None
-
         exit_flag = False
+
+        # Exit message
         if (message.strip() == "\exit"):
             send_packet = {
                 "message" : message.strip(), 
@@ -55,16 +57,11 @@ def client_send():
             }
             exit_flag = True
 
+        # Broadcasting message
         elif message.startswith("\\to") == False:
-            try:
-                message = message.split(";")[1].strip()
-            except:
-                print ("Enter a valid message!")
-                continue
-            
             send_packet = {
                 "message" : message, 
-                "receivers" : []
+                "recievers" : None
             }
 
         else:
@@ -81,7 +78,7 @@ def client_send():
                 "recievers": recievers
             }
 
-        # Encrypting the message:
+        # Encrypting the message
         send_packet = json.dumps(send_packet).encode("utf-8")
         encrypted_message = FSESSION_KEY.encrypt(send_packet)
 
@@ -89,8 +86,6 @@ def client_send():
 
         if exit_flag:
             CLIENT.close()
-
-            # EXIT_FLAG.set()
             exit()
 
     exit()
@@ -105,6 +100,7 @@ if __name__ == "__main__":
     signature = CLIENT.recv(1024)
     # print (signature)
 
+    # Creating certificate for comparision and self-verification
     certificate = {
         "Issuer" : {
             "Name" : "Authorized Certificate Issuer", 
@@ -134,14 +130,13 @@ if __name__ == "__main__":
             hashes.SHA256(), 
         )
         print ("Certificate is valid!")
+
     except Exception as e:
         print (f"Certificate might have been tampered with: {e}")
         exit()
 
     # 4. Creating a symmetric key for client-server session
     SESSION_KEY = Fernet.generate_key()
-    # print(SESSION_KEY, type(SESSION_KEY))
-
     FSESSION_KEY = Fernet(SESSION_KEY)
 
     # 5. Sending the session-key to Server
@@ -162,9 +157,11 @@ if __name__ == "__main__":
 
     CLIENT.send(encrypted_session_key)
 
+    # 6. Recieving the Server-Done message (SSL Handshake Successful)
     doneMessage = CLIENT.recv(1024)
     print (doneMessage.decode('utf-8'))
 
+    # Client starts recieving and sending ---------------------------------------------
     receive_thread = threading.Thread(target=client_receive)
     receive_thread.start()
 
